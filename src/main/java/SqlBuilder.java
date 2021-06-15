@@ -1,14 +1,14 @@
 import builder.SqlQueryBuilder;
+import domain.query.Query;
 
 public class SqlBuilder {
     public static void main(String[] args) {
-        String query = new SqlQueryBuilder()
-                .select()
-                .select("town_to")
-                .dateDiff("time_out", "time_in").as("flight_time")
+        Query query = new SqlQueryBuilder()
+                .select().all()
                 .from("trip")
-                .where("town_from").equal("'Paris'")
-                .get();
+                .where("town_from").equal("Moscow")
+                .build();
+
         System.out.println(query);
     }
 

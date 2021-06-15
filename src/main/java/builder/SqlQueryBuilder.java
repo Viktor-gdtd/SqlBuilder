@@ -1,66 +1,39 @@
 package builder;
 
-import domain.SqlQuery;
+import builder.condition.Condition;
+import builder.i.Builder;
+import builder.where.WhereBuilder;
+import domain.query.Query;
 
-public class SqlQueryBuilder {
-    private SqlQuery query;
+public class SqlQueryBuilder implements Builder {
+    private final Query query;
+    private final FieldBuilder fieldBuilder;
+    private final FromBuilder fromBuilder;
+    private final WhereBuilder whereBuilder;
 
-    public SqlQueryBuilder select(String ... fields) {
-        query = new SqlQuery();
-        query.setQueryType(String.format("SELECT %s", String.join(", ", fields)));
-        return this;
+    public SqlQueryBuilder() {
+        query = new Query();
+        fieldBuilder = new FieldBuilder(this);
+        fromBuilder = new FromBuilder(this);
+        whereBuilder= new WhereBuilder(this);
     }
 
-    public SqlQueryBuilder distinct(String fieldName) {
-        query.addFields(String.format("DISTINCT %s ", fieldName));
-        return this;
+    public FieldBuilder select(String ... fields) {
+        return fieldBuilder.field(fields);
     }
 
-    public SqlQueryBuilder count(String fieldName) {
-        query.addFields(String.format("COUNT %s ", fieldName));
-        return this;
+    public FromBuilder from(String table) {
+        return fromBuilder.from(table);
     }
 
-    public SqlQueryBuilder selectAll() {
-        query = new SqlQuery();
-        query.addFields("*");
-        return this;
+    public Condition where(String field) {
+        return whereBuilder.field(field);
     }
 
-    public SqlQueryBuilder as(String alias) {
-        query.addAlias(alias);
-        return this;
-    }
-
-    public SqlQueryBuilder dateDiff(String dataFrom, String dataTo) {
-        query.dateDiff(dataFrom, dataTo);
-        return this;
-    }
-
-    public JoinBuilder join(String tableName) {
-        return new JoinBuilder(this, tableName);
-    }
-
-    public SqlQueryBuilder from(String tableName) {
-        query.setTableName(tableName);
-        return this;
-    }
-
-    public Condition where(String fieldName) {
-        return new Condition(new WhereBuilder(this), fieldName);
-    }
-
-
-    public String get() {
-        return query.toString();
-    }
-
-    protected SqlQueryBuilder applyWhere (String condition) {
-        query.addCondition(condition);
-        return this;
-    }
-    protected SqlQueryBuilder applyJoin (String tableName, String condition) {
-        query.joinTable(tableName, condition);
-        return this;
+    @Override
+    public Query build() {
+        query.setFieldList(fieldBuilder.get());
+        query.setTable(fromBuilder.get());
+        return query;
     }
 }
